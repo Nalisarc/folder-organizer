@@ -144,3 +144,91 @@ A script that when run will clean up a specific folder by placing specific file 
   if __name__ == '__main__':
       unittest.main()
 #+END_SRC
+
+
+
+* wish list
+
+** add to right click menu
+
+** setting editor
+search pattern
+** scheduler
+cron or scheduler depending on os
+** watchdog
+run whenever a file is added to a watched folder.
+** config file 
+** can run recursively if asked
+** cli
+*** Main
+#+begin_src ipython :tangle cli.py 
+  import click
+  import pathlib
+  import sys
+
+  @click.group()
+  def cli():
+      """A utility for organizing folders on computers"""
+
+      pass
+
+  @cli.command()
+  @click.option(
+      "-r",
+      "--recursive",
+      default=False,
+      type=click.BOOL,
+      help="Run the process recursively",
+  )
+  @click.option(
+      "-v",
+      "--verbose",
+      default=False,
+      count=True,
+      help= "Run the process verbosely"
+  )
+  @click.option(
+      "-d",
+      "--directory",
+      default=pathlib.Path.cwd(),
+      type=click.Path(exists=True),
+      help="Directory to run the process in"
+  )
+  def run(recursive, verbose, directory):
+      click.echo(f"{recursive}, {verbose}, {directory}")
+
+  if __name__ == "__main__":
+      run()
+#+end_src
+
+*** Run in folder
+*** Recurisive
+*** Verbose
+
+** Gui
+** Logging
+** Config File
+It would be nice to have a config that could potentially be loaded on a per folder level.
+
+#+begin_src ipython :session tets
+  import configparser
+
+
+  def makeconfig(config="test.ini"):
+      config = configparser.ConfigParser()
+      config["DEFAULT"] = {}
+      config["FILETYPES"] = {
+	  "Documents": ("*.pdf","*.epub","*.mobi","*.docx","*.pptx","*.xslx"),
+	  "Music": ("*.mp3","*.ogg","*.wav"),
+	  "Pictures": ("*.jpeg","*.jpg","*.png"),
+	  "Videos": ("*.mp4","*.mkv"),
+	  "Archives": ("*.zip", "*.tar", "*.gzip", "*.7z")}
+
+      with open('example.ini', 'w') as configfile:
+	  config.write(configfile)
+	  return None
+      raise IOError
+#+end_src
+
+#+RESULTS:
+: # Out[5]:
