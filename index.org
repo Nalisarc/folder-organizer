@@ -269,6 +269,17 @@ python_version = "3.9"
 
 [scripts]
 test = "<<test-script>>"
+app = "<<app-script>>"
+#+end_src
+
+#+name: test-script
+#+begin_src bash :prologue pipenv shell :async :results verbatim drawer
+pytest src/main/python/testscore.py src/main/python/testscli.py
+#+end_src
+
+#+name: app-script
+#+begin_src bash
+fbs run
 #+end_src
 
 * FBS Stuff
@@ -292,24 +303,8 @@ src/main/python/testscli.py .                                            [100%]
 
 ============================== 5 passed in 0.09s ===============================
 :end:
-#+name: test-script
-#+begin_src bash :prologue pipenv shell :async :results verbatim drawer
-pytest src/main/python/testscore.py src/main/python/testscli.py
-#+end_src
 
-#+RESULTS: test-script
-:results:
-============================= test session starts ==============================
-platform linux -- Python 3.9.5, pytest-6.2.4, py-1.10.0, pluggy-0.13.1
-rootdir: /home/d/projects/folder-organizer
-plugins: anyio-3.4.0
-collected 5 items
 
-src/main/python/testscore.py ....                                        [ 80%]
-src/main/python/testscli.py .                                            [100%]
-
-============================== 5 passed in 0.12s ===============================
-:end:
 
 #+name: run-app
 #+begin_src bash :async :results verbatim drawer 

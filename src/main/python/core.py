@@ -42,21 +42,7 @@ def move_files(root=pathlib.Path('.')):
     return None
     
 
-def write_default_config(f=CONFIGFILE):
-    
-    config = configparser.ConfigParser()
-    config["DEFAULT"] = {}
-    config["FILETYPES"] = {
-        "documents": ("*.pdf","*.epub","*.mobi","*.docx","*.pptx","*.xslx"),
-        "music": ("*.mp3","*.ogg","*.wav"),
-        "pictures": ("*.jpeg","*.jpg","*.png"),
-        "videos": ("*.mp4","*.mkv"),
-        "archives": ("*.zip", "*.tar", "*.gzip", "*.7z")}
 
-    with open(f, 'w') as configfile:
-        config.write(configfile)
-        return None
-    raise IOError
 
 config = configparser.ConfigParser()
 config.read(CONFIGFILE)
