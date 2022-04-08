@@ -1,6 +1,6 @@
 import click
 import pathlib
-import sys
+import core
 
 @click.group()
 def cli():
@@ -27,11 +27,12 @@ def cli():
     "-d",
     "--directory",
     default=pathlib.Path.cwd(),
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, file_okay=False, path_type=pathlib.Path),
     help="Directory to run the process in"
 )
 def run(recursive, verbose, directory):
     click.echo(f"{recursive}, {verbose}, {directory}")
+
 
 if __name__ == "__main__":
     run()

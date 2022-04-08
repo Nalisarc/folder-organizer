@@ -7,9 +7,10 @@ name = "pypi"
 pyside6 = "*"
 click = "*"
 rich = "*"
-fbs = {path = "./../../fbs_pro-1.0.8.tar.gz"}
 
 [dev-packages]
+fbs = {path = "./fbs_pro-1.0.8.tar.gz"}
+pytest = "*"
 
 [requires]
 python_version = "3.9"

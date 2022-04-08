@@ -1,70 +1,40 @@
-#!/usr/bin/env python3
-import unittest
-import os
-import shutil
-import sorter
-class TestScript(unittest.TestCase):
-    def setUp(self):
-        #make test env
-        if not os.path.isdir("./testenv"):
-            os.mkdir("testenv")
-        else:
-            pass
+import pytest
+import core
+import pathlib
+import logging
 
-        #Move into testenv
-        os.chdir("./testenv")
+logging.basicConfig(filename='test.log', encoding='utf-8', level=logging.DEBUG, filemode='w')
 
-        #make dummy files
-        open("test.jpg",'a').close()
-        open("test.mp3",'a').close()
-        open("test.mp4",'a').close()
-        open("test.zip",'a').close()
-        open("test.pdf",'a').close()
-        open("test.nyxie","a").close()
+def test_can_make_folders(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
+    # tmp_path should be clean, between tests.
+    test1 = tmp_path / "music"
+    assert not test1.exists()
+        
+    # create directories
+    core.mkdirs(tmp_path)
 
-    def tearDown(self):
-        os.chdir("../")
-        shutil.rmtree("./testenv")
+    test2 = tmp_path / "music"
+    assert test2.exists()
+    
+    
 
-    def test_can_make_folders(self):
-        if os.path.isdir("./Music"):
-            shutil.rmtree("./Music")
-        sorter.mkdirs()
-        self.assertIn("Music", next(os.walk('.'))[1],
-                         msg="Error Folder Not Present After Created"
-        )
+def test_can_move_files(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
 
-    def test_can_move_files(self):
-        sorter.mkdirs()
-        self.assertTrue(os.path.isfile("test.mp3"))
-        sorter.movefiles()
-        self.assertTrue(os.path.isfile("Music/test.mp3"))
-        open("test.mp3","a").close()
-
-    def test_doesnt_move_wrong_files(self):
-        sorter.mkdirs()
-        self.assertTrue(os.path.isfile("test.mp3"))
-        sorter.movefiles()
-        self.assertFalse(os.path.isfile("Documents/test.mp3"))
-
-    def test_do_nothing_if_dir_empty(self):
-        os.mkdir("./empty")
-        os.chdir("./empty")
-        sorter.main()
-        self.assertEqual(len(os.listdir('.')),0)
-        os.chdir("../")
-
-    def test_doesnt_do_recurrsive(self):
-        os.mkdir("dont-touch")
-        open("dont-touch/test.pdf","a").close()
-        sorter.main()
-        self.assertFalse(os.path.isdir("dont-touch/Music"))
-
-    def test_doesnt_touch_unknown_files(self):
-        self.assertTrue(os.path.isfile("test.nyxie"))
-        sorter.main()
-        self.assertTrue(os.path.isfile("test.nyxie"))
+    (tmp_path / "test.pdf").touch()
+    assert (tmp_path / "test.pdf").exists()
+    core.mkdirs(tmp_path)
+    core.move_files(tmp_path)
+    assert (tmp_path / "documents" / "test.pdf").exists()
+    assert not (tmp_path / "test.pdf").exists()
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_doesnt_touch_unknown_files(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
+
+    (tmp_path / "test.nyxie").touch()
+    assert (tmp_path / "test.nyxie").exists()
+    core.mkdirs(tmp_path)
+    core.move_files(tmp_path)
+    assert (tmp_path / "test.nyxie").exists()

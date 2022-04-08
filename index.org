@@ -1,16 +1,12 @@
 #+Title: Download Organizer
 #+Author: Daniel Alexander Smith
 #+Email: nalisarc@gmail.com
-* Description
+
+* Old stuff
+** Description
 A script that when run will clean up a specific folder by placing specific file types into a designated folder.
-* Imports
-#+name: imports
-#+BEGIN_SRC python
-  import os
-  import sys
-  from glob import glob
-#+END_SRC
-* File Types And Folders
+
+** File Types And Folders
 #+name: filetypes
 #+BEGIN_SRC python
   FILETYPES = {
@@ -22,7 +18,7 @@ A script that when run will clean up a specific folder by placing specific file 
   }
 #+END_SRC
 
-#+name: mkdirs
+
 #+BEGIN_SRC python
   def mkdirs():
       subdirs = next(os.walk("."))[1]
@@ -45,7 +41,7 @@ A script that when run will clean up a specific folder by placing specific file 
       return None
 #+END_SRC
 
-* Main
+** Main
 #+name: main
 #+BEGIN_SRC python :noweb yes :tangle sorter.py :shebang "#!/usr/bin/env python3"
   <<imports>>
@@ -69,11 +65,11 @@ A script that when run will clean up a specific folder by placing specific file 
       sys.exit(s)
 #+END_SRC
 
-* Tests
+** Tests
 
-** Test Main
+*** Test Main
 #+name: tests-main
-#+BEGIN_SRC python :tangle tests.py :shebang #!/usr/bin/env python3
+#+BEGIN_SRC python 
   import unittest
   import os
   import shutil
@@ -159,76 +155,203 @@ cron or scheduler depending on os
 run whenever a file is added to a watched folder.
 ** config file 
 ** can run recursively if asked
-** cli
-*** Main
-#+begin_src ipython :tangle cli.py 
-  import click
-  import pathlib
-  import sys
-
-  @click.group()
-  def cli():
-      """A utility for organizing folders on computers"""
-
-      pass
-
-  @cli.command()
-  @click.option(
-      "-r",
-      "--recursive",
-      default=False,
-      type=click.BOOL,
-      help="Run the process recursively",
-  )
-  @click.option(
-      "-v",
-      "--verbose",
-      default=False,
-      count=True,
-      help= "Run the process verbosely"
-  )
-  @click.option(
-      "-d",
-      "--directory",
-      default=pathlib.Path.cwd(),
-      type=click.Path(exists=True),
-      help="Directory to run the process in"
-  )
-  def run(recursive, verbose, directory):
-      click.echo(f"{recursive}, {verbose}, {directory}")
-
-  if __name__ == "__main__":
-      run()
-#+end_src
-
-*** Run in folder
-*** Recurisive
-*** Verbose
 
 ** Gui
 ** Logging
-** Config File
-It would be nice to have a config that could potentially be loaded on a per folder level.
-
-#+begin_src ipython :session tets
-  import configparser
 
 
-  def makeconfig(config="test.ini"):
-      config = configparser.ConfigParser()
-      config["DEFAULT"] = {}
-      config["FILETYPES"] = {
-	  "Documents": ("*.pdf","*.epub","*.mobi","*.docx","*.pptx","*.xslx"),
-	  "Music": ("*.mp3","*.ogg","*.wav"),
-	  "Pictures": ("*.jpeg","*.jpg","*.png"),
-	  "Videos": ("*.mp4","*.mkv"),
-	  "Archives": ("*.zip", "*.tar", "*.gzip", "*.7z")}
+* New
+** Imports
+#+name: imports
+#+BEGIN_SRC python
+import pathlib
+import configparser
+import logging
+from rich.logging import RichHandler
+#+END_SRC
 
-      with open('example.ini', 'w') as configfile:
-	  config.write(configfile)
-	  return None
-      raise IOError
+** mkdirs
+#+name: mkdirs
+#+begin_src ipython
+def mkdirs(root=pathlib.Path('.')):
+    for key in config['FILETYPES']:
+        d = root / key
+        
+        if d.exists():
+            log.info(f"{d} exists. skipping")
+            pass
+        else:
+            log.info(f"creating {d}")
+            d.mkdir()
+            
+    return None
 #+end_src
 
-#+RESULTS:
-: # Out[5]:
+** move_files
+#+name: move-files
+#+begin_src ipython
+def move_files(root=pathlib.Path('.')):
+
+    for file_type in config["FILETYPES"]:
+        log.info(f"Processing: {file_type}")
+
+        for file_format in eval(config.get("FILETYPES", file_type)): #dangerous figure out something better
+            log.info(f"Processing: {file_format}")
+            files = root.glob(file_format)
+
+            for f in files:
+                log.info(f"Moving {f} to {root / file_type / f.name}")
+                f.rename(root / file_type / f.name)
+
+    log.info("finished")
+    return None
+    
+#+end_src
+
+** Core
+#+begin_src ipython :noweb yes :tangle core.py 
+<<imports>>
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+CONFIGFILE = "settings.ini"
+
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+log = logging.getLogger("rich")
+
+<<mkdirs>>
+
+<<move-files>>
+
+<<write-default-config>>
+
+<<load-config>>
+#+end_src
+** Config File
+It would be nice to have a config that could potentially be loaded on a per folder level.
+*** Default 
+#+name: write-default-config
+#+begin_src ipython :session tets
+def write_default_config(config=CONFIGFILE):
+    
+    config = configparser.ConfigParser()
+    config["DEFAULT"] = {}
+    config["FILETYPES"] = {
+        "documents": ("*.pdf","*.epub","*.mobi","*.docx","*.pptx","*.xslx"),
+        "music": ("*.mp3","*.ogg","*.wav"),
+        "pictures": ("*.jpeg","*.jpg","*.png"),
+        "videos": ("*.mp4","*.mkv"),
+        "archives": ("*.zip", "*.tar", "*.gzip", "*.7z")}
+
+    with open("settings.ini", 'w') as configfile:
+        config.write(configfile)
+        return None
+    raise IOError
+#+end_src
+
+*** Load Configuration
+#+name: load-config
+#+begin_src ipython
+config = configparser.ConfigParser()
+config.read(CONFIGFILE)
+#+end_src
+
+** Tests
+
+#+begin_src ipython :tangle tests.py 
+import pytest
+import core
+import pathlib
+import logging
+
+logging.basicConfig(filename='test.log', encoding='utf-8', level=logging.DEBUG, filemode='w')
+
+def test_can_make_folders(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
+    # tmp_path should be clean, between tests.
+    test1 = tmp_path / "music"
+    assert not test1.exists()
+        
+    # create directories
+    core.mkdirs(tmp_path)
+
+    test2 = tmp_path / "music"
+    assert test2.exists()
+    
+    
+
+def test_can_move_files(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
+
+    (tmp_path / "test.pdf").touch()
+    assert (tmp_path / "test.pdf").exists()
+    core.mkdirs(tmp_path)
+    core.move_files(tmp_path)
+    assert (tmp_path / "documents" / "test.pdf").exists()
+    assert not (tmp_path / "test.pdf").exists()
+
+
+def test_doesnt_touch_unknown_files(tmp_path,caplog):
+    caplog.set_level(logging.DEBUG)
+
+    (tmp_path / "test.nyxie").touch()
+    assert (tmp_path / "test.nyxie").exists()
+    core.mkdirs(tmp_path)
+    core.move_files(tmp_path)
+    assert (tmp_path / "test.nyxie").exists()
+    
+
+    
+
+#+end_src
+
+** cli
+*** Main
+#+begin_src ipython :tangle cli.py 
+import click
+import pathlib
+import core
+
+@click.group()
+def cli():
+    """A utility for organizing folders on computers"""
+
+    pass
+
+@cli.command()
+@click.option(
+    "-r",
+    "--recursive",
+    default=False,
+    type=click.BOOL,
+    help="Run the process recursively",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    default=False,
+    count=True,
+    help= "Run the process verbosely"
+)
+@click.option(
+    "-d",
+    "--directory",
+    default=pathlib.Path.cwd(),
+    type=click.Path(exists=True, file_okay=False, path_type=pathlib.Path),
+    help="Directory to run the process in"
+)
+def run(recursive, verbose, directory):
+    click.echo(f"{recursive}, {verbose}, {directory}")
+
+
+if __name__ == "__main__":
+    run()
+#+end_src
+*** Tests
+
+* Local Variables                                                  :noexport:
+# Local Variables:
+# org-src-preserve-indentation: t
+# End:
