@@ -14,3 +14,6 @@ pytest = "*"
 
 [requires]
 python_version = "3.9"
+
+[scripts]
+test = "pytest src/main/python/testscore.py src/main/python/testscli.py"

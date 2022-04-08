@@ -2,165 +2,50 @@
 #+Author: Daniel Alexander Smith
 #+Email: nalisarc@gmail.com
 
-* Old stuff
-** Description
-A script that when run will clean up a specific folder by placing specific file types into a designated folder.
-
-** File Types And Folders
-#+name: filetypes
-#+BEGIN_SRC python
-  FILETYPES = {
-      "Documents": ("*.pdf","*.epub","*.mobi"),
-      "Music": ("*.mp3","*.ogg","*.wav"),
-      "Pictures": ("*.jpeg","*.jpg","*.png"),
-      "Videos": ("*.mp4","*.mkv"),
-      "Archives": ("*.zip", "*.tar", "*.gzip", "*.7z")
-  }
-#+END_SRC
-
-
-#+BEGIN_SRC python
-  def mkdirs():
-      subdirs = next(os.walk("."))[1]
-      for key in FILETYPES.keys():
-          if key not in subdirs:
-              os.mkdir(key)
-          else:
-              pass
-      return None
-#+END_SRC
-
-#+name: movefiles
-#+BEGIN_SRC python
-  def movefiles():
-      for ftype in FILETYPES:
-          for fformat in FILETYPES[ftype]:
-              filelist = glob(fformat)
-              for f in filelist:
-                  os.rename(f, ftype+"/"+f)
-      return None
-#+END_SRC
-
-** Main
-#+name: main
-#+BEGIN_SRC python :noweb yes :tangle sorter.py :shebang "#!/usr/bin/env python3"
-  <<imports>>
-
-  <<filetypes>>
-
-  <<mkdirs>>
-
-  <<movefiles>>
-
-  def main():
-      if len(os.listdir(".")) == 0:
-          #print("Empty Directory. Exiting")
-          return 1
-      mkdirs()
-      movefiles()
-      return 0
-
-  if __name__ == '__main__':
-      s = main()
-      sys.exit(s)
-#+END_SRC
-
-** Tests
-
-*** Test Main
-#+name: tests-main
-#+BEGIN_SRC python 
-  import unittest
-  import os
-  import shutil
-  import sorter
-  class TestScript(unittest.TestCase):
-      def setUp(self):
-          #make test env
-          if not os.path.isdir("./testenv"):
-              os.mkdir("testenv")
-          else:
-              pass
-
-          #Move into testenv
-          os.chdir("./testenv")
-
-          #make dummy files
-          open("test.jpg",'a').close()
-          open("test.mp3",'a').close()
-          open("test.mp4",'a').close()
-          open("test.zip",'a').close()
-          open("test.pdf",'a').close()
-          open("test.nyxie","a").close()
-
-      def tearDown(self):
-          os.chdir("../")
-          shutil.rmtree("./testenv")
-
-      def test_can_make_folders(self):
-          if os.path.isdir("./Music"):
-              shutil.rmtree("./Music")
-          sorter.mkdirs()
-          self.assertIn("Music", next(os.walk('.'))[1],
-                           msg="Error Folder Not Present After Created"
-          )
-
-      def test_can_move_files(self):
-          sorter.mkdirs()
-          self.assertTrue(os.path.isfile("test.mp3"))
-          sorter.movefiles()
-          self.assertTrue(os.path.isfile("Music/test.mp3"))
-          open("test.mp3","a").close()
-
-      def test_doesnt_move_wrong_files(self):
-          sorter.mkdirs()
-          self.assertTrue(os.path.isfile("test.mp3"))
-          sorter.movefiles()
-          self.assertFalse(os.path.isfile("Documents/test.mp3"))
-
-      def test_do_nothing_if_dir_empty(self):
-          os.mkdir("./empty")
-          os.chdir("./empty")
-          sorter.main()
-          self.assertEqual(len(os.listdir('.')),0)
-          os.chdir("../")
-
-      def test_doesnt_do_recurrsive(self):
-          os.mkdir("dont-touch")
-          open("dont-touch/test.pdf","a").close()
-          sorter.main()
-          self.assertFalse(os.path.isdir("dont-touch/Music"))
-
-      def test_doesnt_touch_unknown_files(self):
-          self.assertTrue(os.path.isfile("test.nyxie"))
-          sorter.main()
-          self.assertTrue(os.path.isfile("test.nyxie"))
-
-
-  if __name__ == '__main__':
-      unittest.main()
-#+END_SRC
-
-
-
 * wish list
 
-** add to right click menu
+** TODO add to right click menu
+Windows, Mac, and Linux all have the ability to add programs
+to the context menu or whatever it's called. ideally it would be nice
+to make it so that when browsing in the file explorer you could run it with a right click.
+** TODO setting editor
+For the gui, I want to have a nice settings editor where you can set things like:
+file type to look for, scheduler, and watchdog folders.
+That could also be exported and imported
+** TODO FBS integration
+I want this to have a nice and friendly gui that my coworkers would be comfortable using, it
+This would be opensource but will require special tools to get a signed binary.
 
-** setting editor
-search pattern
-** scheduler
+
+** TODO scheduler
 cron or scheduler depending on os
-** watchdog
+** TODO watchdog
 run whenever a file is added to a watched folder.
-** config file 
-** can run recursively if asked
-
-** Gui
-** Logging
 
 
-* New
+** DONE config file
+Sorta, right now it can take tuples formatted like so:
+#+begin_example
+('*.{ext}')
+#+end_example
+
+however my gut tells me this isn't the best idea?
+because the way I was doing it requires an eval to make sure its valid.
+This means, if someone was naughty and put malicious code in your settings it could
+be run.
+I'm not sure if there is a way around this so I'll need to look into it further.
+
+** TODO can run recursively if asked
+In recursive mode it will grab any documents that are in sub folders
+other wise it skips them which is the default.
+** TODO Gui
+*** TODO Pyside6
+** TODO Cli
+*** TODO Intigrate Rich and Click
+** TODO Logging
+** TODO Installer
+
+* Core
 ** Imports
 #+name: imports
 #+BEGIN_SRC python
@@ -209,7 +94,7 @@ def move_files(root=pathlib.Path('.')):
 #+end_src
 
 ** Core
-#+begin_src ipython :noweb yes :tangle core.py 
+#+begin_src ipython :noweb yes :tangle src/main/python/core.py 
 <<imports>>
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 CONFIGFILE = "settings.ini"
@@ -232,24 +117,9 @@ log = logging.getLogger("rich")
 ** Config File
 It would be nice to have a config that could potentially be loaded on a per folder level.
 *** Default 
-#+name: write-default-config
-#+begin_src ipython :session tets
-def write_default_config(config=CONFIGFILE):
-    
-    config = configparser.ConfigParser()
-    config["DEFAULT"] = {}
-    config["FILETYPES"] = {
-        "documents": ("*.pdf","*.epub","*.mobi","*.docx","*.pptx","*.xslx"),
-        "music": ("*.mp3","*.ogg","*.wav"),
-        "pictures": ("*.jpeg","*.jpg","*.png"),
-        "videos": ("*.mp4","*.mkv"),
-        "archives": ("*.zip", "*.tar", "*.gzip", "*.7z")}
-
-    with open("settings.ini", 'w') as configfile:
-        config.write(configfile)
-        return None
-    raise IOError
+#+begin_src conf
 #+end_src
+
 
 *** Load Configuration
 #+name: load-config
@@ -260,7 +130,7 @@ config.read(CONFIGFILE)
 
 ** Tests
 
-#+begin_src ipython :tangle tests.py 
+#+begin_src ipython :tangle src/main/python/testscore.py 
 import pytest
 import core
 import pathlib
@@ -301,15 +171,28 @@ def test_doesnt_touch_unknown_files(tmp_path,caplog):
     core.mkdirs(tmp_path)
     core.move_files(tmp_path)
     assert (tmp_path / "test.nyxie").exists()
+
+def test_skips_recurisive_by_default(tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    (tmp_path / "donttouch").mkdir()
+    t = (tmp_path / "donttouch" / "secret.pdf")
+    t.touch()
+    assert t.exists()
+    core.mkdirs(tmp_path)
+    core.move_files(tmp_path)
+    assert t.exists()
+    assert not (tmp_path / "documents" / "secret.pdf").exists()
+    
+
     
 
     
 
 #+end_src
 
-** cli
-*** Main
-#+begin_src ipython :tangle cli.py 
+* cli
+** Main
+#+begin_src ipython :tangle src/main/python/cli.py 
 import click
 import pathlib
 import core
@@ -349,7 +232,95 @@ def run(recursive, verbose, directory):
 if __name__ == "__main__":
     run()
 #+end_src
-*** Tests
+** Tests
+#+begin_src ipython :tangle src/main/python/testscli.py  
+import pytest
+import core
+import pathlib
+import logging
+
+from click.testing import CliRunner
+
+from cli import run
+
+def test_cli_run():
+    runner = CliRunner()
+    result = runner.invoke(run, [])
+#+end_src
+
+* Pipenv Config
+#+begin_src conf :tangle Pipfile :noweb yes 
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyside6 = "*"
+click = "*"
+rich = "*"
+
+[dev-packages]
+fbs = {path = "./fbs_pro-1.0.8.tar.gz"}
+pytest = "*"
+
+[requires]
+python_version = "3.9"
+
+[scripts]
+test = "<<test-script>>"
+#+end_src
+
+* FBS Stuff
+
+* Org Stuff
+
+#+name: run-tests
+#+begin_src bash :results verbatim drawer :async 
+pipenv run test
+#+end_src
+
+#+RESULTS: run-tests
+:results:
+============================= test session starts ==============================
+platform linux -- Python 3.9.5, pytest-7.1.1, pluggy-1.0.0
+rootdir: /home/d/projects/folder-organizer
+collected 5 items
+
+src/main/python/testscore.py ....                                        [ 80%]
+src/main/python/testscli.py .                                            [100%]
+
+============================== 5 passed in 0.09s ===============================
+:end:
+#+name: test-script
+#+begin_src bash :prologue pipenv shell :async :results verbatim drawer
+pytest src/main/python/testscore.py src/main/python/testscli.py
+#+end_src
+
+#+RESULTS: test-script
+:results:
+============================= test session starts ==============================
+platform linux -- Python 3.9.5, pytest-6.2.4, py-1.10.0, pluggy-0.13.1
+rootdir: /home/d/projects/folder-organizer
+plugins: anyio-3.4.0
+collected 5 items
+
+src/main/python/testscore.py ....                                        [ 80%]
+src/main/python/testscli.py .                                            [100%]
+
+============================== 5 passed in 0.12s ===============================
+:end:
+
+#+name: run-app
+#+begin_src bash :async :results verbatim drawer 
+pipenv run fbs run
+#+end_src
+
+#+RESULTS: run-app
+:results:
+:end:
+
+#+name: 
 
 * Local Variables                                                  :noexport:
 # Local Variables:
