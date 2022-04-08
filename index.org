@@ -1,6 +1,7 @@
 #+Title: Download Organizer
-#+Author: Daniel Alexander Smith
+#+Author: D Smith
 #+Email: nalisarc@gmail.com
+
 
 * wish list
 
@@ -93,8 +94,8 @@ def move_files(root=pathlib.Path('.')):
     
 #+end_src
 
-** Core
-#+begin_src ipython :noweb yes :tangle src/main/python/core.py 
+** main
+#+begin_src ipython :noweb yes :tangle src/main/sepython/core.py 
 <<imports>>
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 CONFIGFILE = "settings.ini"
@@ -117,7 +118,13 @@ log = logging.getLogger("rich")
 ** Config File
 It would be nice to have a config that could potentially be loaded on a per folder level.
 *** Default 
-#+begin_src conf
+#+begin_src conf :tangle setting.conf 
+[FILETYPES]
+documents = ('*.pdf', '*.epub', '*.mobi', '*.docx', '*.pptx', '*.xslx')
+music = ('*.mp3', '*.ogg', '*.wav')
+pictures = ('*.jpeg', '*.jpg', '*.png')
+videos = ('*.mp4', '*.mkv')
+archives = ('*.zip', '*.tar', '*.gzip', '*.7z')
 #+end_src
 
 
@@ -278,7 +285,7 @@ pytest src/main/python/testscore.py src/main/python/testscli.py
 #+end_src
 
 #+name: app-script
-#+begin_src bash
+#+begin_src bash :prologue pipenv shell :async :results verbatim drawer
 fbs run
 #+end_src
 
@@ -315,7 +322,24 @@ pipenv run fbs run
 :results:
 :end:
 
-#+name: 
+#+name: build-projectdir
+#+begin_src bash :results verbatim drawer 
+mkdir -p src/main/resources/base/
+
+#+end_src
+
+#+RESULTS: build-projectdir
+:results:
+:end:
+
+* References
+https://stackoverflow.com/questions/793858/how-to-mkdir-only-if-a-directory-does-not-already-exist
+https://build-system.fman.io/manual/
+https://stackoverflow.com/questions/60040208/access-fbs-resource-files-in-non-gui-code
+https://docs.python.org/3/library/pathlib.html
+https://click.palletsprojects.com/en/8.0.x/testing/
+https://click.palletsprojects.com/en/8.1.x/#documentation
+https://rich.readthedocs.io/en/stable/index.html
 
 * Local Variables                                                  :noexport:
 # Local Variables:
