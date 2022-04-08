@@ -7,7 +7,7 @@ Still a work in progress. use at your own risk.
 #+begin_src org 
   This program uses version 6.2 of the Qt Toolkit under the terms
   of the GNU Lesser General Public License version 3 (LGPLv3).
-  The Qt To olkit is Copyright (C) 2022 The Qt Company Ltd. To
+  The Qt Toolkit is Copyright (C) 2022 The Qt Company Ltd. To
   obtain a copy of its source code, please go to https://qt.io or email
   us at nalisarc@gmail.com.
   

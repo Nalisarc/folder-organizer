@@ -198,6 +198,22 @@ def test_skips_recurisive_by_default(tmp_path, caplog):
 #+end_src
 
 * cli
+Right now this doesn't do anything
+if you want to try the program out install it with pipenv install
+and run
+#+begin_example
+pipenv run python 
+#+end_example
+
+and then:
+#+begin_example
+>>> import src/main/python/core
+>>> core.mkdirs("PATH TO FOLDER")
+>>> core.move_files("PATH TO FOLDER")
+#+end_example
+
+It's inconvientent for now. I'll fix this later.
+
 ** Main
 #+begin_src ipython :tangle src/main/python/cli.py 
 import click
