@@ -2,6 +2,9 @@ import pytest
 import core
 import pathlib
 import logging
+import configparser
+
+
 
 logging.basicConfig(filename='test.log', encoding='utf-8', level=logging.DEBUG, filemode='w')
 

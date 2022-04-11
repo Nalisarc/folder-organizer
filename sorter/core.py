@@ -2,8 +2,11 @@ import pathlib
 import configparser
 import logging
 from rich.logging import RichHandler
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
-CONFIGFILE = "settings.ini"
+
+config = "settings.ini"
+
+logging.basicConfig(filename='example.log',
+                    encoding='utf-8', level=logging.DEBUG)
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -12,25 +15,28 @@ logging.basicConfig(
 
 log = logging.getLogger("rich")
 
+
 def mkdirs(root=pathlib.Path('.')):
     for key in config['FILETYPES']:
-        d = root / key
-        
+        d = (root / key)
+
         if d.exists():
             log.info(f"{d} exists. skipping")
             pass
         else:
             log.info(f"creating {d}")
             d.mkdir()
-            
+
     return None
+
 
 def move_files(root=pathlib.Path('.')):
 
     for file_type in config["FILETYPES"]:
         log.info(f"Processing: {file_type}")
 
-        for file_format in eval(config.get("FILETYPES", file_type)): #dangerous figure out something better
+        # dangerous figure out something better
+        for file_format in eval(config.get("FILETYPES", file_type)):
             log.info(f"Processing: {file_format}")
             files = root.glob(file_format)
 
@@ -40,9 +46,3 @@ def move_files(root=pathlib.Path('.')):
 
     log.info("finished")
     return None
-    
-
-
-
-config = configparser.ConfigParser()
-config.read(CONFIGFILE)
